@@ -4,4 +4,4 @@ Thats only for my purposes. You can use or redistribute this tool if you are int
 
 How to use (short):
 
-   ruby sneaky.rb addproject -n example.com -r
+    $ ruby sneaky.rb addproject -n example.com -r
