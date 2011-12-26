@@ -91,7 +91,7 @@ private
   # Create system user and user home directory
   def create_user
     @user_password = generate_password
-    run "useradd #{project_name} -p #{@user_password.crypt(project_name)} "
+    run "useradd #{project_name} -p #{@user_password.crypt(project_name)} -s /bin/bash"
   end
 
   # Create project directory structure
