@@ -11,7 +11,6 @@ class Sneaky < Thor
   source_root File.realpath((__FILE__) + '/../../templates')
 
   SERVER_IP         = '79.99.1.143'
-  NGINX_SCRIPT      = "/etc/init.d/nginx"
   NGINX_CONFIG      = "/etc/nginx/nginx.conf"
   SERVERS_DIR       = "/etc/nginx/sites-enabled"
   NGINX_CONFIG_TPL  = "nginx.conf"
@@ -26,6 +25,7 @@ class Sneaky < Thor
     if yes?("This creates new project with name '#{project_name}'. Proceed?")
       create_user
       create_project
+      create_ssh_dir
       create_nginx_server
       create_mysql_user
       restart_nginx
@@ -98,19 +98,35 @@ private
   def create_project
     run "mkdir /home/#{project_name}"
     run "mkdir /home/#{project_name}/config"
-    run "mkdir /home/#{project_name}/htdocs"
-    run "mkdir /home/#{project_name}/htdocs/shared"
-    run "mkdir /home/#{project_name}/htdocs/shared/pids"
-    run "mkdir /home/#{project_name}/htdocs/shared/sockets"
-    run "mkdir /home/#{project_name}/htdocs/shared/db"
-    run "mkdir /home/#{project_name}/htdocs/shared/db/sphinx"
+    run "mkdir /home/#{project_name}/shared"
+    run "mkdir /home/#{project_name}/shared/pids"
+    run "mkdir /home/#{project_name}/shared/sockets"
+    run "mkdir /home/#{project_name}/shared/db"
+    run "mkdir /home/#{project_name}/shared/db/sphinx"
     run "chown -R #{project_name}:#{project_name} /home/#{project_name}"
+  end
+
+  def create_ssh_dir
+    run "mkdir /home/#{project_name}/.ssh"
+    run "chmod 700 /home/#{project_name}/.ssh"
+
+    copy_file "authorized_keys", "/home/#{project_name}/.ssh"
+    copy_file "known_hosts", "/home/#{project_name}/.ssh"
+
+    run "chmod 600 /home/#{project_name}/.ssh/authorized_keys"
+    run "chmod 644 /home/#{project_name}/.ssh/known_hosts"
+
+    run "chown -R #{project_name}:#{project_name} /home/.ssh"
   end
 
   # Create project config for nginx server
   # TODO: Move server config to user config directory
   def create_nginx_server
-    template SERVER_CONFIG_TPL, File.join(SERVERS_DIR, project_name)
+    server_config = File.join("/home/#{project_name}/config", project_name)
+    template SERVER_CONFIG_TPL, server_config
+
+    # Create symlink to config
+    rum "ln -s #{server_config} #{SERVERS_DIR}"
   end
 
   def create_nginx_config
@@ -126,7 +142,7 @@ private
 
   # Restart Nginx
   def restart_nginx
-    run "#{NGINX_SCRIPT} restart" if options.restart
+    run "/etc/init.d/nginx restart" if options.restart
   end
 
   # Remove user and project directory structure

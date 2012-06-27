@@ -1,5 +1,5 @@
 upstream <%= project_name %>_server {
-  server unix:/home/<%= project_name %>/htdocs/shared/sockets/unicorn.sock fail_timeout=0;
+  server unix:/home/<%= project_name %>/shared/sockets/unicorn.sock fail_timeout=0;
 }
 
 # Server configuration
@@ -9,7 +9,7 @@ server {
   client_max_body_size 20M;
   
   keepalive_timeout 5;
-  root /home/<%= project_name %>/htdocs/current/public;
+  root /home/<%= project_name %>/current/public;
 
   try_files $uri/index.html $uri.html $uri @<%= project_name %>_app;
   
@@ -23,6 +23,6 @@ server {
   error_page 500 502 503 504 /500.html;
 
   location = /500.html {
-    root /home/<%= project_name %>/htdocs/current/public;
+    root /home/<%= project_name %>/current/public;
   }
 }
